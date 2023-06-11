@@ -3,6 +3,14 @@ from flask import request, jsonify
 from bson.json_util import dumps
 from bson import ObjectId
 from urllib.parse import unquote
+from train import train_model
+
+
+@app.route("/train", methods=["POST"])
+def train_route():
+    train_model()
+    response = {'message': 'Training completed'}
+    return jsonify(response)
 
 
 @app.route("/intents", methods=["GET"])
@@ -27,7 +35,6 @@ def add_intent():
         }
 
     intent_coll.insert_one(document)
-    import train
     document = dumps(document)
 
     return (document)
@@ -35,30 +42,27 @@ def add_intent():
 @app.route("/delete-intent/<id>", methods = ["DELETE"])
 def delete_intent(id):
     document = intent_coll.find_one_and_delete({'_id':ObjectId(id)})
-    import train
     return dumps(document)
     
 
 @app.route("/add-pattern/<id>", methods = ["PUT"])
 def update_pattern(id):
-    pattern = request.get_json().get("pattern")
+    pattern = request.get_json().get("prompt")
 
     if pattern and len(pattern) > 10:
         document = intent_coll.find_one_and_update({'_id':ObjectId(id)},{'$push':{'patterns':pattern}}, return_document=True)
     else:
         return jsonify({'error': 'You must submit either a pattern greater than 10 characters'}), 400
-    import train
     return dumps(document)
 
 
 @app.route("/add-response/<id>", methods = ["PUT"])
 def update_response(id):
-    response = request.get_json().get("response")
+    response = request.get_json().get("prompt")
     if response and len(response) > 10:
         document = intent_coll.find_one_and_update({'_id':ObjectId(id)},{'$push':{'responses': response}}, return_document=True)
     else:
         return jsonify({'error': 'You must submit a response greater than 10 characters'}), 400
-    import train
     return dumps(document)
 
 
@@ -70,7 +74,6 @@ def delete_pattern(id, prompt):
         {'$pull': {'patterns': decoded_prompt}},
         return_document=True
     )
-    import train
     return dumps(document)
 
 
@@ -79,8 +82,7 @@ def delete_response(id, prompt):
     decoded_prompt = unquote(prompt)
     document = intent_coll.find_one_and_update(
         {'_id': ObjectId(id)},
-        {'$pull': {'response': decoded_prompt}},
+        {'$pull': {'responses': decoded_prompt}},
         return_document=True
     )
-    import train
     return dumps(document)
