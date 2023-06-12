@@ -10,7 +10,7 @@ bson==0.5.10
 bcrypt==4.0.1
 urllib3==1.26.12
 DateTime==5.1
-torch==2.0.1
+torch==1.13.1
 nltk==3.8.1
 numpy==1.24.1
 requests==2.28.1
