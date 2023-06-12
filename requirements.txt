@@ -2,7 +2,7 @@ Flask==2.2.5
 Flask-Cors==3.0.10
 pymongo==4.3.3
 Flask-JWT-Extended==4.5.2
-python-dotenv==1.0.0
+python-dotenv==0.21.1
 blinker==1.6.2
 certifi==2022.9.24
 click==8.1.3
