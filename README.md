@@ -1,3 +1,3 @@
 # Mizuumi-bot-backend
 
-coming soon...
+Frontend Repo: https://github.com/Sajid2001/Mizuumi-bot-frontend
