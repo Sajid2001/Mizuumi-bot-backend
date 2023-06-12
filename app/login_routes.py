@@ -1,8 +1,24 @@
 from app import users, app
 from flask import request, jsonify
 from bson.json_util import dumps
+from bson import ObjectId
+import json
 from bcrypt import gensalt, hashpw, checkpw
 import re
+from flask_jwt_extended import JWTManager, create_access_token
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+jwt_secret_key = os.getenv('JWT_SECRET_KEY')
+
+app.config["JWT_SECRET_KEY"] = jwt_secret_key
+jwt = JWTManager(app)
+
+def create_token(user_id):
+    access_token = create_access_token(identity=user_id)
+    return access_token
 
 @app.route('/register', methods = ["POST"])
 def register():
@@ -45,8 +61,13 @@ def register():
         "role":role
     }
 
-    users.insert_one(user)
-    return dumps(user)
+    inserted_user = users.insert_one(user)
+    inserted_user_id = inserted_user.inserted_id
+    serialized_user_id = json.loads(dumps(inserted_user_id))
+    token = create_token(str(serialized_user_id['$oid']))
+
+    return jsonify({"email": email, "token": token, "role": role}), 200
+
 
 
 @app.route('/login', methods = ["POST"])
@@ -71,5 +92,9 @@ def login():
     if not match:
         return jsonify({'error': 'Incorrect Password'}), 400
     
-    return dumps(user)
+    user_id = str(user["_id"])
+
+    token = create_token(user_id)
+
+    return jsonify({"email": email, "token": token, "role": user["role"]}), 200
 

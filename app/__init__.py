@@ -17,6 +17,6 @@ messages = db.messages
 intent_coll = db.intents
 users = db.users
 
+from app import login_routes
 from app import intent_routes
 from app import message_routes
-from app import login_routes

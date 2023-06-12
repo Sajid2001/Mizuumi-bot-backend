@@ -3,22 +3,25 @@ from app import app, messages
 from _datetime import datetime
 from chat import get_response
 from bson.json_util import dumps
-from bson import ObjectId
+from auth import require_auth
 
 @app.route("/respond",methods=["POST"])
+@require_auth
 def respond():
 
     #send message to bot and store in database
     text = request.get_json().get("text")
     sender = request.get_json().get("sender")
+    user_id = request.user_id
 
-    if text == "":
+    if not text:
         return jsonify({'error': 'You must enter a message'}), 400
 
     user_message = {
         "text":text,
         "timestamp": datetime.now(),
-        "sender": sender
+        "sender": sender,
+        "user_id":user_id
     }
     messages.insert_one(user_message)
 
@@ -27,7 +30,8 @@ def respond():
     mizuumi_message = {
         "text":response,
         "timestamp": datetime.now(),
-        "sender":"Mizuumi"
+        "sender":"Mizuumi",
+        "user_id":user_id
     }
 
     messages.insert_one(mizuumi_message)
@@ -36,7 +40,9 @@ def respond():
 
 
 @app.route("/messages", methods=["GET"])
+@require_auth
 def get_messages():
-    data = list(messages.find().sort("_id", -1).limit(8))
+    user_id = request.user_id
+    data = list(messages.find({"user_id":user_id}).sort("_id", -1).limit(8))
     documents = dumps(data)
     return documents
